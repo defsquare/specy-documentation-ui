@@ -133,7 +133,7 @@
                     [:div.text-lg.leading-6.text-gray-900 {:class "mb-5"} doc]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :entity) context)))
+                 (filter #(= (:kind %) "entity") context)))
 
       (into [:div
              [:div.max-w-7xl.mx-auto.px-4.sm:px-6.md:px-8
@@ -144,7 +144,7 @@
                     [:div.text-lg.leading-6.text-gray-900 {:class "mb-5"} doc]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :value) context)))
+                 (filter #(= (:kind %) "value") context)))
 
       (into [:div
              [:div.max-w-7xl.mx-auto.px-4.sm:px-6.md:px-8
@@ -155,7 +155,7 @@
                     [:div.text-lg.leading-6.text-gray-900 {:class "mb-5"} doc]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :referential) context)))
+                 (filter #(= (:kind %) "referential") context)))
 
       (into [:div
              [:div.max-w-7xl.mx-auto.px-4.sm:px-6.md:px-8
@@ -167,7 +167,7 @@
                     [:div.leading-6.text-gray-900 {:class "mb-5"} "Rely on " [:a.italic.underline {:href (str "#" (get command :rely-on))} (get command :rely-on)]]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :command) context)))
+                 (filter #(= (:kind %) "command") context)))
 
       (into [:div
              [:div.max-w-7xl.mx-auto.px-4.sm:px-6.md:px-8
@@ -179,7 +179,7 @@
                     [:div.leading-6.text-gray-900 {:class "mb-5"} "Rely on " [:a.italic.underline {:href (str "#" (get query :rely-on))} (get query :rely-on)]]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :query) context)))
+                 (filter #(= (:kind %) "query") context)))
 
       (into [:div
              [:div.max-w-7xl.mx-auto.px-4.sm:px-6.md:px-8
@@ -191,6 +191,6 @@
                     [:div.leading-6.text-gray-900 {:class "mb-5"} "Rely on " [:a.italic.underline {:href (str "#" (get event :rely-on))} (get event :rely-on)]]
                     [:h3.text-lg.leading-6.text-gray-900 {:class "font-semibold"} "Schema"]
                     (ast->hiccup schema)])
-                 (filter #(= (:kind %) :event) context)))
+                 (filter #(= (:kind %) "event") context)))
 
       ]]]])
