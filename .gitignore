@@ -1,0 +1,8 @@
+/node_modules/
+/resources/js/
+/.nrepl-port
+
+*.iml
+.idea
+.shadow-cljs
+.cpcache

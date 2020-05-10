@@ -1,0 +1,16 @@
+{:deps         true
+ :source-paths ["src"]
+ :builds       {:app          {:target           :browser
+                               :output-dir       "resources/public/js"
+                               :asset-path       "/js"
+                               :modules          {:main {:entries [specy.documentation.core]}}
+                               :nrepl            {:init-ns specy.documentation.core}
+                               :devtools         {:http-root "resources/public"
+                                                  :http-port 3000}}
+                :build        {:target           :browser
+                               :output-dir       "dist/js"
+                               :modules          {:app {:entries [specy.documentation.core]}}
+                               ;:build-hooks      [(build/rename-compiled-js)]
+                               :compiler-options {:infer-externs :auto
+                                                  :optimizations :advanced
+                                                  :compiler-options {:output-feature-set :es3}}}}}
