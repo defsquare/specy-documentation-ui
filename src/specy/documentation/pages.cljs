@@ -3,27 +3,43 @@
             [reagent.dom :as rdom]))
 
 
-(defmulti schema->hiccup (fn [m] (condp = (:type m)
-                                   "object" :object
-                                   "array" :array
-                                   :default)))
+(defmulti schema->hiccup (fn [m opts] (cond
+                                        (some? (:enum m)) :enum
+                                        (some? (:$ref m)) :ref
+                                        (= (:type m) "object") :object
+                                        (= (:type m) "array") :array
+                                        :else :default)))
 
-(defmethod schema->hiccup :object [{:keys [required properties]}]
+(defmethod schema->hiccup :object [{:keys [required properties]} opts]
   (conj [:div "{"]
         (map (fn [[pname pschema]]
                [:div {:key (str pname "-schema-hiccup") :class (str "bg-gray-50 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-4" (if (contains? (set required) (some-> pname name)) "font-semibold" ""))}
                 [:dt {:class "text-sm font-medium text-gray-500"} pname]
-                [:dd {:class "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"} (schema->hiccup pschema)]])
+                [:dd {:class "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"} (schema->hiccup pschema opts)]])
              (sort-by #(not (contains? (set required) (some-> (first %) name))) properties))
         "}"))
 
 
-(defmethod schema->hiccup :array [{:keys [items]}]
-  [:div
-   [:label {:className "inline-flex mr-3"} "List of"]
-   [:div {:className "inline-flex ml-8"} (schema->hiccup items)]])
+(defmethod schema->hiccup :array [{:keys [items]} opts]
+  [:div {:class "sm:grid sm:grid-cols-5 sm:gap-4"}
+   [:dt {:class "text-sm"} "List of"]
+   [:dd {:class "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4"} (schema->hiccup items opts)]])
 
-(defmethod schema->hiccup :default [{:keys [type]}]
+(defmethod schema->hiccup :ref [{:keys [$ref]} {:keys [on-click-ref-fn] :as opts}]
+  (let [[_ ref-to-ns ref-to-name] (re-find #"\#/definitions/:([^\/]*)/(.*)" $ref)
+        ref (keyword ref-to-ns ref-to-name)]
+    [:span {:class   "inline-flex items-center rounded-full text-xs font-medium underline text-purple-500 w-full px-1 cursor-pointer"
+            :onClick (fn [] (on-click-ref-fn ref))}
+     [:div {:class "overflow-hidden truncate" :style {:direction "rtl" :text-align "left"}} (str ref-to-ns "/" ref-to-name)]]))
+
+(defmethod schema->hiccup :enum [{:keys [enum]} opts]
+  [:div {:class "sm:grid sm:grid-cols-5 sm:gap-4"}
+   [:dt {:class "text-sm"} "One of"]
+   [:dd {:class "mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-4 pl-4"}
+    [:ul {:class "list-disc"}
+     (doall (map (fn [v] [:li {:key (str "list-" v) :class ""} v]) enum))]]])
+
+(defmethod schema->hiccup :default [{:keys [type]} opts]
   [:div type])
 
 (defn- type-tag [{:keys [kind] :as building-block}]
@@ -61,7 +77,7 @@
      [:a {:href "#", :class "font-medium text-cyan-700 hover:text-cyan-900"} "Details"]]]])
 
 
-(defn building-block-panel [building-block {:keys [close-fn] :as opts}]
+(defn building-block-panel [building-block {:keys [close-fn on-click-ref-fn] :as opts}]
   [:div {:class "fixed inset-0 overflow-hidden h-screen"}
    [:div {:class "absolute inset-0 overflow-hidden"}
     [:section {:class "absolute inset-y-0 right-0 max-w-full flex", :aria-labelledby "slide-over-heading"}
@@ -100,7 +116,7 @@
            [:div {:class "bg-gray-50 px-4 py-5 sm:grid sm:gap-4 sm:px-6"}
             [:dt {:class "text-sm font-medium text-gray-500"} "Schema"]
             [:dd {:class "mt-1 text-sm text-gray-900"}
-             (schema->hiccup (:schema building-block))]]]]]
+             (schema->hiccup (:schema building-block) {:on-click-ref-fn on-click-ref-fn})]]]]]
         ;"<!-- /End replace -->"
         ]]]]]])
 
@@ -150,4 +166,5 @@
 
          ;; building block details panel
          (when-let [selected-building-block (:selected-building-block-panel @state)]
-           (building-block-panel selected-building-block {:close-fn (fn [] (swap! state assoc :selected-building-block-panel nil))}))]]])))
+           (building-block-panel selected-building-block {:close-fn        (fn [] (swap! state assoc :selected-building-block-panel nil))
+                                                          :on-click-ref-fn (fn [ref] (swap! state assoc :selected-building-block-panel (some (fn [{:keys [ns name] :as building-block}] (when (= (keyword ns name) ref) building-block)) context)))}))]]])))
